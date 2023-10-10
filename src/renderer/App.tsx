@@ -1,21 +1,74 @@
+import { useState } from 'react';
 import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
-import { UploadOutlined } from '@ant-design/icons';
-import { Button, Upload } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
+import { Upload, Modal } from 'antd';
+import type { RcFile, UploadProps } from 'antd/es/upload';
+import type { UploadFile } from 'antd/es/upload/interface';
 import './App.scss';
 
+const getBase64 = (file: RcFile): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = (error) => reject(error);
+  });
+
 function Page() {
-  const handleBeforeUpload = (file: File) => {
-    window.electron.ipcRenderer.sendMessage('ipc-upload', file.path)
-    return false
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewImage, setPreviewImage] = useState('');
+  const [previewTitle, setPreviewTitle] = useState('');
+  const [fileList, setFileList] = useState<UploadFile[]>([]);
+
+  const handleCancel = () => setPreviewOpen(false);
+
+  const handlePreview = async (file: UploadFile) => {
+    if (!file.url && !file.preview) {
+      file.preview = await getBase64(file.originFileObj as RcFile);
+    }
+
+    setPreviewImage(file.url || (file.preview as string));
+    setPreviewOpen(true);
+    setPreviewTitle(
+      file.name || file.url!.substring(file.url!.lastIndexOf('/') + 1),
+    );
+  };
+
+  const handleChange: UploadProps['onChange'] = ({ fileList: newFileList }) =>
+    setFileList(newFileList);
+
+  const uploadButton = (
+    <div>
+      <PlusOutlined />
+      <div style={{ marginTop: 8 }}>上传</div>
+    </div>
+  );
+
+  const handleUpload = (file: File) => {
+    window.electron.ipcRenderer.sendMessage('ipc-upload', file.path);
+    return false;
   };
 
   return (
     <div className="app">
-      <div className='app-context'>
-        <h1>请选择目标文件夹</h1>
-        <Upload beforeUpload={handleBeforeUpload}>
-          <Button icon={<UploadOutlined />}>Upload Directory</Button>
+      <div className="app-context">
+        <Upload
+          listType="picture-card"
+          beforeUpload={handleUpload}
+          fileList={fileList}
+          onPreview={handlePreview}
+          onChange={handleChange}
+        >
+          {fileList.length >= 8 ? null : uploadButton}
         </Upload>
+        <Modal
+          open={previewOpen}
+          title={previewTitle}
+          footer={null}
+          onCancel={handleCancel}
+        >
+          <img alt="example" style={{ width: '100%' }} src={previewImage} />
+        </Modal>
       </div>
     </div>
   );
