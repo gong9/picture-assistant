@@ -48,7 +48,7 @@ const installExtensions = async () => {
     .catch(console.log);
 };
 
-const createWindow = async () => {
+const createWindow = async (cb?: (mainWindow: BrowserWindow) => void) => {
   if (isDebug) {
     await installExtensions();
   }
@@ -80,7 +80,7 @@ const createWindow = async () => {
     if (!mainWindow) {
       throw new Error('"mainWindow" is not defined');
     }
-    initCompressProcess(mainWindow);
+
     if (process.env.START_MINIMIZED) {
       mainWindow.minimize();
     } else {
@@ -104,6 +104,12 @@ const createWindow = async () => {
   // Remove this if your app does not use auto updates
   // eslint-disable-next-line
   new AppUpdater();
+
+  if (cb) {
+    cb(mainWindow);
+  }
+
+  return mainWindow;
 };
 
 /**
@@ -125,7 +131,10 @@ process.on('unhandledRejection', (reason, promise) => {
 app
   .whenReady()
   .then(() => {
-    createWindow();
+    createWindow((masterWindow: BrowserWindow) => {
+      initCompressProcess(masterWindow);
+    });
+
     app.on('activate', () => {
       // On macOS it's common to re-create a window in the app when the
       // dock icon is clicked and there are no other windows open.

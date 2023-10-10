@@ -10,6 +10,7 @@ export type HandleMessage = {
   status: 'success' | 'error';
   file?: string;
   message: string;
+  error?: string;
 };
 
 const getBase64 = (file: RcFile): Promise<string> =>
@@ -39,6 +40,13 @@ function Page() {
             type: 'success',
             content: '文件压缩完毕',
           });
+        } else {
+          setCompressStatus(false);
+          message.success({
+            type: 'error',
+            content: '文件压缩失败',
+          });
+          console.error(fileMessage.error);
         }
       },
     );
@@ -104,7 +112,7 @@ function Page() {
           onPreview={handlePreview}
           onChange={handleChange}
         >
-          {fileList.length >= 8 ? null : uploadButton}
+          {fileList.length >= 1 ? null : uploadButton}
         </Upload>
 
         <div className="btns">
@@ -115,7 +123,7 @@ function Page() {
           >
             开始压缩
           </Button>
-          <Button
+          {/* <Button
             type="primary"
             className="download"
             disabled={!compressStatus || downloadStatus}
@@ -124,7 +132,7 @@ function Page() {
             }
           >
             下载
-          </Button>
+          </Button> */}
         </div>
       </div>
 

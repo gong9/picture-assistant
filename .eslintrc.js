@@ -17,6 +17,8 @@ module.exports = {
     'no-plusplus': 'off',
     'promise/catch-or-return': 'off',
     'promise/always-return': 'off',
+    // eslint-disable-next-line no-dupe-keys
+    '@typescript-eslint/no-unused-vars': 'off',
   },
   parserOptions: {
     ecmaVersion: 2022,

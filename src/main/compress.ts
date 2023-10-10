@@ -2,9 +2,10 @@ import { ipcMain, BrowserWindow, dialog } from 'electron';
 import fs from 'fs-extra';
 import path from 'path';
 import imageminPngquant from 'imagemin-pngquant';
+import to from 'await-to-js';
 
 const tempDir = 'temp';
-const rootPath = process.cwd();
+let rootPath = '';
 
 const isExists = async (filePath: string) => {
   return await fs.pathExists(filePath);
@@ -62,32 +63,48 @@ const createTempDir = async () => {
  * handlePlacingResources
  * @param filePath
  */
-const handlePlacingResources = async (filePath: string) => {
-  const tempPath = await createTempDir();
-  const fileName = path.basename(filePath);
+const handlePlacingResources = async (
+  filePath: string,
+  browserWindow: BrowserWindow,
+) => {
+  return new Promise((resolve, reject) => {
+    dialog
+      .showOpenDialog(browserWindow, {
+        title: '选择下载路径',
+        properties: ['openDirectory'],
+      })
+      // eslint-disable-next-line promise/always-return
+      .then(async (data) => {
+        const downloadPath = data.filePaths[0];
+        const compressedPath = await compress(filePath, downloadPath);
 
-  const currentPath = path.resolve(tempPath, fileName);
-  fs.copySync(filePath, currentPath);
-
-  const compressedPath = await compress(
-    currentPath,
-    path.resolve(tempPath, 'compressed'),
-  );
-
-  return path.resolve(compressedPath, fileName);
+        resolve(compressedPath);
+      })
+      .catch((err) => {
+        reject(err);
+      });
+  });
 };
 
 const initCompressProcess = (browserWindow: BrowserWindow) => {
-  let compressedPath = '';
-
+  const compressedPath = '';
   ipcMain.on('ipc-upload', async (event, filePath: string) => {
-    compressedPath = await handlePlacingResources(filePath);
+    rootPath = path.dirname(filePath);
+    const [err] = await to(handlePlacingResources(filePath, browserWindow));
 
-    event.reply('ipc-upload', {
-      status: 'success',
-      message: '压缩完毕',
-      file: compressedPath,
-    });
+    if (!err) {
+      event.reply('ipc-upload', {
+        status: 'success',
+        message: '压缩完毕',
+        file: compressedPath,
+      });
+    } else {
+      event.reply('ipc-upload', {
+        status: 'error',
+        message: '压缩失败',
+        error: err.message,
+      });
+    }
   });
 
   ipcMain.on('ipc-download', async (event) => {
