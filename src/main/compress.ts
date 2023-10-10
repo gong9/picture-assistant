@@ -11,8 +11,6 @@ const isExists = async (filePath: string) => {
 };
 
 const remove = async (filePath: string) => {
-  if (!(await isExists(filePath))) return;
-
   const files = fs.readdirSync(filePath);
   for (let i = 0; i < files.length; i++) {
     const newPath = path.join(filePath, files[i]);
@@ -51,7 +49,10 @@ const compress = async (imgPath: string, placePath: string) => {
 const createTempDir = async () => {
   const tempPath = path.resolve(rootPath, tempDir);
 
-  await remove(tempPath);
+  if (await isExists(tempPath)) {
+    await remove(tempPath);
+  }
+
   fs.ensureDirSync(tempPath);
 
   return tempPath;
@@ -68,13 +69,14 @@ const handlePlacingResources = async (filePath: string) => {
   fs.copySync(filePath, currentPath);
 
   compress(currentPath, path.resolve(tempPath, 'compressed'));
-  console.log('copySync', filePath, tempPath);
 };
 
 ipcMain.on('ipc-upload', async (event, filePath: string) => {
-  console.log('ipc-upload', filePath);
-  // console.log(process.cwd());
-  // event.reply('ipc-upload', 'pong');
-
   handlePlacingResources(filePath);
+
+  event.reply('ipc-upload', {
+    status: 'success',
+    message: '压缩完毕',
+    file: '',
+  });
 });

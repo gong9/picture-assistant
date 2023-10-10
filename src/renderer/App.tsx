@@ -1,10 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
 import { PlusOutlined } from '@ant-design/icons';
-import { Upload, Modal } from 'antd';
+import { Upload, Modal, message } from 'antd';
 import type { RcFile, UploadProps } from 'antd/es/upload';
 import type { UploadFile } from 'antd/es/upload/interface';
 import './App.scss';
+
+export type HandleMessage = {
+  status: 'success' | 'error';
+  file: string;
+  message: string;
+};
 
 const getBase64 = (file: RcFile): Promise<string> =>
   new Promise((resolve, reject) => {
@@ -19,6 +25,20 @@ function Page() {
   const [previewImage, setPreviewImage] = useState('');
   const [previewTitle, setPreviewTitle] = useState('');
   const [fileList, setFileList] = useState<UploadFile[]>([]);
+
+  useEffect(() => {
+    window.electron.ipcRenderer.on(
+      'ipc-upload',
+      (fileMessage: HandleMessage) => {
+        if (fileMessage.status === 'success') {
+          message.success({
+            type: 'success',
+            content: '文件压缩完毕',
+          });
+        }
+      },
+    );
+  }, []);
 
   const handleCancel = () => setPreviewOpen(false);
 
