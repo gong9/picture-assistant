@@ -1,14 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
 import { PlusOutlined } from '@ant-design/icons';
-import { Upload, Modal, message } from 'antd';
+import { Upload, Modal, message, Button } from 'antd';
 import type { RcFile, UploadProps } from 'antd/es/upload';
 import type { UploadFile } from 'antd/es/upload/interface';
 import './App.scss';
 
 export type HandleMessage = {
   status: 'success' | 'error';
-  file: string;
+  file?: string;
   message: string;
 };
 
@@ -25,15 +25,32 @@ function Page() {
   const [previewImage, setPreviewImage] = useState('');
   const [previewTitle, setPreviewTitle] = useState('');
   const [fileList, setFileList] = useState<UploadFile[]>([]);
+  const [compressStatus, setCompressStatus] = useState(false);
+  const [downloadStatus, setDownloadStatus] = useState(false);
+  const needHandleFileRef = useRef<File[]>([]);
 
   useEffect(() => {
     window.electron.ipcRenderer.on(
       'ipc-upload',
       (fileMessage: HandleMessage) => {
         if (fileMessage.status === 'success') {
+          setCompressStatus(true);
           message.success({
             type: 'success',
             content: '文件压缩完毕',
+          });
+        }
+      },
+    );
+
+    window.electron.ipcRenderer.on(
+      'ipc-download',
+      (fileMessage: HandleMessage) => {
+        if (fileMessage.status === 'success') {
+          setDownloadStatus(true);
+          message.success({
+            type: 'success',
+            content: '文件下载完毕',
           });
         }
       },
@@ -65,8 +82,16 @@ function Page() {
   );
 
   const handleUpload = (file: File) => {
-    window.electron.ipcRenderer.sendMessage('ipc-upload', file.path);
+    needHandleFileRef.current.push(file);
     return false;
+  };
+
+  const uploadToCompress = () => {
+    if (needHandleFileRef.current.length) {
+      needHandleFileRef.current.forEach((file) => {
+        window.electron.ipcRenderer.sendMessage('ipc-upload', file.path);
+      });
+    }
   };
 
   return (
@@ -81,15 +106,36 @@ function Page() {
         >
           {fileList.length >= 8 ? null : uploadButton}
         </Upload>
-        <Modal
-          open={previewOpen}
-          title={previewTitle}
-          footer={null}
-          onCancel={handleCancel}
-        >
-          <img alt="example" style={{ width: '100%' }} src={previewImage} />
-        </Modal>
+
+        <div className="btns">
+          <Button
+            type="primary"
+            onClick={uploadToCompress}
+            disabled={!needHandleFileRef.current.length || compressStatus}
+          >
+            开始压缩
+          </Button>
+          <Button
+            type="primary"
+            className="download"
+            disabled={!compressStatus || downloadStatus}
+            onClick={() =>
+              window.electron.ipcRenderer.sendMessage('ipc-download')
+            }
+          >
+            下载
+          </Button>
+        </div>
       </div>
+
+      <Modal
+        open={previewOpen}
+        title={previewTitle}
+        footer={null}
+        onCancel={handleCancel}
+      >
+        <img alt="example" style={{ width: '100%' }} src={previewImage} />
+      </Modal>
     </div>
   );
 }

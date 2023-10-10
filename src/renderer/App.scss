@@ -2,8 +2,20 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  background-color: #fff;
+  margin: 30vh 15vw;
+  border-radius: 5px;
+  border: 1px dotted;
 
   .app-context {
-    margin-top: 20vh;
+    margin-top: 15vh;
+
+    .btns {
+      margin-top: 10px;
+    }
+
+    .download {
+      margin-left: 10px;
+    }
   }
 }

@@ -1,4 +1,4 @@
-import { ipcMain } from 'electron';
+import { ipcMain, BrowserWindow, dialog } from 'electron';
 import fs from 'fs-extra';
 import path from 'path';
 import imageminPngquant from 'imagemin-pngquant';
@@ -30,7 +30,7 @@ const remove = async (filePath: string) => {
 const compress = async (imgPath: string, placePath: string) => {
   // eslint-disable-next-line no-eval
   const imagemin = (await eval('import("imagemin")')).default;
-  const files = await imagemin([imgPath], {
+  await imagemin([imgPath], {
     destination: placePath,
     plugins: [
       imageminPngquant({
@@ -39,7 +39,7 @@ const compress = async (imgPath: string, placePath: string) => {
     ],
   });
 
-  return files;
+  return placePath;
 };
 
 /**
@@ -64,19 +64,53 @@ const createTempDir = async () => {
  */
 const handlePlacingResources = async (filePath: string) => {
   const tempPath = await createTempDir();
+  const fileName = path.basename(filePath);
 
-  const currentPath = path.resolve(tempPath, path.basename(filePath));
+  const currentPath = path.resolve(tempPath, fileName);
   fs.copySync(filePath, currentPath);
 
-  compress(currentPath, path.resolve(tempPath, 'compressed'));
+  const compressedPath = await compress(
+    currentPath,
+    path.resolve(tempPath, 'compressed'),
+  );
+
+  return path.resolve(compressedPath, fileName);
 };
 
-ipcMain.on('ipc-upload', async (event, filePath: string) => {
-  handlePlacingResources(filePath);
+const initCompressProcess = (browserWindow: BrowserWindow) => {
+  let compressedPath = '';
 
-  event.reply('ipc-upload', {
-    status: 'success',
-    message: '压缩完毕',
-    file: '',
+  ipcMain.on('ipc-upload', async (event, filePath: string) => {
+    compressedPath = await handlePlacingResources(filePath);
+
+    event.reply('ipc-upload', {
+      status: 'success',
+      message: '压缩完毕',
+      file: compressedPath,
+    });
   });
-});
+
+  ipcMain.on('ipc-download', async (event) => {
+    // eslint-disable-next-line promise/catch-or-return
+    dialog
+      .showOpenDialog(browserWindow, {
+        title: '选择下载路径',
+        properties: ['openDirectory'],
+      })
+      // eslint-disable-next-line promise/always-return
+      .then((data) => {
+        const downloadPath = data.filePaths[0];
+        fs.copy(
+          compressedPath,
+          path.resolve(downloadPath, path.basename(compressedPath)),
+        ).then(() => {
+          event.reply('ipc-download', {
+            status: 'success',
+            message: '下载完毕完毕',
+          });
+        });
+      });
+  });
+};
+
+export default initCompressProcess;
