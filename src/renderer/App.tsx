@@ -129,7 +129,7 @@ function Page() {
                 onClick={uploadToCompress}
                 disabled={!needHandleFileRef.current.length || compressStatus}
               >
-                开始压缩
+                指定存储位置
               </Button>
             </div>
           </div>
