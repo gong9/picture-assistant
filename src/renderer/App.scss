@@ -1,21 +1,45 @@
 .app {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+
   background-color: #fff;
   margin: 30vh 15vw;
+  padding: 30px;
   border-radius: 5px;
   border: 1px dotted;
+  width: 50vw;
+  height: 50vh;
 
-  .app-context {
-    margin-top: 15vh;
+  .tabs {
 
-    .btns {
-      margin-top: 10px;
+    width: 100%;
+    height: 100%;
+
+    .ant-tabs-content,
+    .ant-tabs-tabpane {
+      width: 100%;
+      height: 100%;
     }
 
-    .download {
-      margin-left: 10px;
+    .app-context {
+
+      width: 100%;
+      height: 100%;
+
+
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      .app-upload {
+        .btns {
+          margin-top: 10px;
+        }
+
+        .download {
+          margin-left: 10px;
+        }
+      }
+
     }
   }
 }

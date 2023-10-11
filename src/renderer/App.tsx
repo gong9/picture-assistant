@@ -1,7 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
-import { PlusOutlined } from '@ant-design/icons';
-import { Upload, Modal, message, Button } from 'antd';
+import {
+  PlusOutlined,
+  AndroidOutlined,
+  AppleOutlined,
+} from '@ant-design/icons';
+import { Upload, Modal, message, Button, Tabs } from 'antd';
 import type { RcFile, UploadProps } from 'antd/es/upload';
 import type { UploadFile } from 'antd/es/upload/interface';
 import './App.scss';
@@ -102,39 +106,83 @@ function Page() {
     }
   };
 
+  const tabsData = [
+    {
+      icon: () => AppleOutlined,
+      label: 'png压缩',
+      children: (
+        <div className="app-context">
+          <div className="app-upload">
+            <Upload
+              listType="picture-card"
+              beforeUpload={handleUpload}
+              fileList={fileList}
+              onPreview={handlePreview}
+              onChange={handleChange}
+            >
+              {fileList.length >= 1 ? null : uploadButton}
+            </Upload>
+
+            <div className="btns">
+              <Button
+                type="primary"
+                onClick={uploadToCompress}
+                disabled={!needHandleFileRef.current.length || compressStatus}
+              >
+                开始压缩
+              </Button>
+            </div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      icon: () => AndroidOutlined,
+      label: 'png=>apng',
+      children: (
+        <div className="app-context">
+          <div className="app-upload">
+            <Upload
+              listType="picture-card"
+              beforeUpload={handleUpload}
+              fileList={fileList}
+              onPreview={handlePreview}
+              onChange={handleChange}
+            >
+              {fileList.length >= 100 ? null : uploadButton}
+            </Upload>
+
+            <div className="btns">
+              <Button
+                type="primary"
+                onClick={uploadToCompress}
+                disabled={!needHandleFileRef.current.length || compressStatus}
+              >
+                开始合成
+              </Button>
+            </div>
+          </div>
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div className="app">
-      <div className="app-context">
-        <Upload
-          listType="picture-card"
-          beforeUpload={handleUpload}
-          fileList={fileList}
-          onPreview={handlePreview}
-          onChange={handleChange}
-        >
-          {fileList.length >= 1 ? null : uploadButton}
-        </Upload>
+      <Tabs
+        className="tabs"
+        tabPosition="left"
+        defaultActiveKey="1"
+        items={tabsData.map(({ label, children }, i) => {
+          const id = String(i + 1);
 
-        <div className="btns">
-          <Button
-            type="primary"
-            onClick={uploadToCompress}
-            disabled={!needHandleFileRef.current.length || compressStatus}
-          >
-            开始压缩
-          </Button>
-          {/* <Button
-            type="primary"
-            className="download"
-            disabled={!compressStatus || downloadStatus}
-            onClick={() =>
-              window.electron.ipcRenderer.sendMessage('ipc-download')
-            }
-          >
-            下载
-          </Button> */}
-        </div>
-      </div>
+          return {
+            label: <span>{label}</span>,
+            key: id,
+            children,
+          };
+        })}
+      />
 
       <Modal
         open={previewOpen}
