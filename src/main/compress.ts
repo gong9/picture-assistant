@@ -1,4 +1,4 @@
-import { ipcMain, BrowserWindow, dialog } from 'electron';
+import { ipcMain, BrowserWindow, dialog, nativeImage } from 'electron';
 import fs from 'fs-extra';
 import path from 'path';
 import imageminPngquant from 'imagemin-pngquant';
@@ -21,6 +21,20 @@ const remove = async (filePath: string) => {
     else fs.unlinkSync(newPath);
   }
   fs.rmdirSync(filePath);
+};
+
+const imageCompress = (input: string, placePath: string, quality = 70) => {
+  quality = quality || 50;
+  console.log('input', placePath);
+  const image = nativeImage.createFromPath(input);
+  const res = image.resize({
+    // 图片压缩质量，可选值：better || good || best
+    quality: 'best',
+  });
+  const imageData = res.toPNG();
+  const name = path.basename(input);
+  fs.writeFileSync(path.resolve(placePath, name), imageData);
+  return imageData;
 };
 
 /**
@@ -74,9 +88,9 @@ const handlePlacingResources = async (
       })
       .then(async (data) => {
         const downloadPath = data.filePaths[0];
-        const compressedPath = await compress(filePath, downloadPath);
+        await imageCompress(filePath, downloadPath);
 
-        resolve(compressedPath);
+        resolve(true);
       })
       .catch((err) => {
         reject(err);
