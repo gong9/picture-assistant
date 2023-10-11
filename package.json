@@ -83,12 +83,12 @@
     "electron-log": "^4.4.8",
     "electron-updater": "^6.1.4",
     "fs-extra": "^11.1.1",
-    "imagemin": "^8.0.1",
+    "imagemin": "7.0.1",
     "imagemin-pngquant": "^9.0.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.16.0",
-    "sass": "^1.69.0"
+    "source-map-support": "^0.5.21"
   },
   "devDependencies": {
     "@electron/notarize": "^2.1.0",
@@ -145,7 +145,6 @@
     "rimraf": "^5.0.1",
     "sass": "^1.67.0",
     "sass-loader": "^13.3.2",
-    "source-map-support": "^0.5.21",
     "style-loader": "^3.3.3",
     "terser-webpack-plugin": "^5.3.9",
     "ts-jest": "^29.1.1",
@@ -161,9 +160,9 @@
     "webpack-merge": "^5.9.0"
   },
   "build": {
-    "productName": "ElectronReact",
+    "productName": "快压缩",
     "appId": "org.erb.ElectronReact",
-    "asar": true,
+    "asar": false,
     "asarUnpack": "**\\*.{node,dll}",
     "files": [
       "dist",

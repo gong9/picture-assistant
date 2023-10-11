@@ -3,6 +3,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import imageminPngquant from 'imagemin-pngquant';
 import to from 'await-to-js';
+import imagemin from 'imagemin';
 
 const tempDir = 'temp';
 let rootPath = '';
@@ -29,18 +30,16 @@ const remove = async (filePath: string) => {
  * @returns
  */
 const compress = async (imgPath: string, placePath: string) => {
-  // eslint-disable-next-line no-eval
-  const imagemin = (await eval('import("imagemin")')).default;
-  await imagemin([imgPath], {
-    destination: placePath,
-    plugins: [
-      imageminPngquant({
-        quality: [0.6, 0.8],
-      }),
-    ],
-  });
+  //   const files = await imagemin([imgPath], {
+  //     destination: placePath,
+  //     plugins: [
+  //       //   imageminPngquant({
+  //       //     quality: [0.6, 0.8],
+  //       //   }),
+  //     ],
+  //   });
 
-  return placePath;
+  return imagemin;
 };
 
 /**
@@ -73,7 +72,6 @@ const handlePlacingResources = async (
         title: '选择下载路径',
         properties: ['openDirectory'],
       })
-      // eslint-disable-next-line promise/always-return
       .then(async (data) => {
         const downloadPath = data.filePaths[0];
         const compressedPath = await compress(filePath, downloadPath);
@@ -90,12 +88,14 @@ const initCompressProcess = (browserWindow: BrowserWindow) => {
   const compressedPath = '';
   ipcMain.on('ipc-upload', async (event, filePath: string) => {
     rootPath = path.dirname(filePath);
-    const [err] = await to(handlePlacingResources(filePath, browserWindow));
+    const [err, res] = await to(
+      handlePlacingResources(filePath, browserWindow),
+    );
 
     if (!err) {
       event.reply('ipc-upload', {
         status: 'success',
-        message: '压缩完毕',
+        message: res,
         file: compressedPath,
       });
     } else {
