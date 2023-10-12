@@ -156,7 +156,7 @@ const initCompressProcess = (browserWindow: BrowserWindow) => {
         if (!err) {
           event.reply('ipc-detach', {
             status: 'success',
-            message: res,
+            file: res,
           });
         } else {
           event.reply('ipc-detach', {

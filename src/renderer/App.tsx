@@ -8,6 +8,7 @@ import {
 import { Upload, Modal, message, Button, Tabs } from 'antd';
 import type { RcFile, UploadProps } from 'antd/es/upload';
 import type { UploadFile } from 'antd/es/upload/interface';
+import ViewImage from './components/ViewImage';
 import './App.scss';
 
 export type HandleMessage = {
@@ -33,6 +34,7 @@ function Page() {
   const [compressStatus, setCompressStatus] = useState(false);
   const [downloadStatus, setDownloadStatus] = useState(false);
   const needHandleFileRef = useRef<File[]>([]);
+  const [imageArray, setImageArray] = useState<string[]>([]);
 
   useEffect(() => {
     window.electron.ipcRenderer.on(
@@ -60,9 +62,10 @@ function Page() {
       (fileMessage: HandleMessage) => {
         if (fileMessage.status === 'success') {
           setDownloadStatus(true);
+          setImageArray(fileMessage.file as any as string[]);
           message.success({
             type: 'success',
-            content: '文件下载完毕',
+            content: '文件拆解完毕',
           });
         }
       },
@@ -157,18 +160,24 @@ function Page() {
               onPreview={handlePreview}
               onChange={handleChange}
             >
-              {fileList.length >= 100 ? null : uploadButton}
+              {fileList.length >= 1 ? null : uploadButton}
             </Upload>
 
-            <div className="btns">
-              <Button
-                type="primary"
-                onClick={detach}
-                disabled={!needHandleFileRef.current.length || compressStatus}
-              >
-                开始拆解
-              </Button>
-            </div>
+            {imageArray.length > 0 ? (
+              <div className="show-view">
+                拆解完成，共有{imageArray.length}帧，请去目标文件夹查看
+              </div>
+            ) : (
+              <div className="btns">
+                <Button
+                  type="primary"
+                  onClick={detach}
+                  disabled={!needHandleFileRef.current.length || compressStatus}
+                >
+                  开始拆解
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       ),

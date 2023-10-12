@@ -1,4 +1,5 @@
 .app {
+  min-width: 300px;
   margin-top: 20vh;
   background-color: #fff;
   padding: 30px;
@@ -16,6 +17,11 @@
     .ant-tabs-tabpane {
       width: 100%;
       height: 100%;
+    }
+
+    .show-view {
+      width: 30vw;
+      height: 20vh;
     }
 
     .app-context {

@@ -23,6 +23,7 @@ async function blobToImage(blob: any, outputFilePath: string) {
 const detachApng = async (inputPath: string, placePath: string) => {
   const data = fs.readFileSync(inputPath);
   const anim: any = parseApng(data);
+  const outputFilePaths: string[] = [];
   //   const outputPath = path.resolve(rootPath, detachDir);
 
   //   if (!(await isExists(outputPath))) fs.ensureDirSync(outputPath);
@@ -33,8 +34,11 @@ const detachApng = async (inputPath: string, placePath: string) => {
     // eslint-disable-next-line no-await-in-loop
     await blobToImage(anim.frames[i].imageData, outputFilePath);
 
+    outputFilePaths.push(outputFilePath);
     console.log(`Frame ${i} saved as ${outputFilePath}`);
   }
+
+  return outputFilePaths;
 };
 
 export default detachApng;
