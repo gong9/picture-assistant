@@ -5,14 +5,17 @@ import imageminPngquant from 'imagemin-pngquant';
 import to from 'await-to-js';
 import imagemin from 'imagemin';
 
+// eslint-disable-next-line import/no-cycle
+import detach from './handleApng';
+
 const tempDir = 'temp';
 let rootPath = '';
 
-const isExists = async (filePath: string) => {
+export const isExists = async (filePath: string) => {
   return await fs.pathExists(filePath);
 };
 
-const remove = async (filePath: string) => {
+export const remove = async (filePath: string) => {
   const files = fs.readdirSync(filePath);
   for (let i = 0; i < files.length; i++) {
     const newPath = path.join(filePath, files[i]);
@@ -24,11 +27,9 @@ const remove = async (filePath: string) => {
 };
 
 const imageCompress = (input: string, placePath: string, quality = 70) => {
-  quality = quality || 50;
-  console.log('input', placePath);
+  // quality = quality || 50;
   const image = nativeImage.createFromPath(input);
   const res = image.resize({
-    // 图片压缩质量，可选值：better || good || best
     quality: 'best',
   });
   const imageData = res.toPNG();
@@ -44,14 +45,14 @@ const imageCompress = (input: string, placePath: string, quality = 70) => {
  * @returns
  */
 const compress = async (imgPath: string, placePath: string) => {
-  //   const files = await imagemin([imgPath], {
-  //     destination: placePath,
-  //     plugins: [
-  //       //   imageminPngquant({
-  //       //     quality: [0.6, 0.8],
-  //       //   }),
-  //     ],
-  //   });
+  const files = await imagemin([imgPath], {
+    destination: placePath,
+    plugins: [
+      imageminPngquant({
+        quality: [0.6, 0.8],
+      }),
+    ],
+  });
 
   return imagemin;
 };
@@ -140,6 +141,30 @@ const initCompressProcess = (browserWindow: BrowserWindow) => {
             message: '下载完毕完毕',
           });
         });
+      });
+  });
+
+  ipcMain.on('ipc-detach', async (event, filePath: string) => {
+    dialog
+      .showOpenDialog(browserWindow, {
+        title: '选择要放置的文件夹',
+        properties: ['openDirectory'],
+      })
+      .then(async (data) => {
+        const downloadPath = data.filePaths[0];
+        const [err, res] = await to(detach(filePath, downloadPath));
+        if (!err) {
+          event.reply('ipc-detach', {
+            status: 'success',
+            message: res,
+          });
+        } else {
+          event.reply('ipc-detach', {
+            status: 'error',
+            message: '拆离失败',
+            error: err.message,
+          });
+        }
       });
   });
 };

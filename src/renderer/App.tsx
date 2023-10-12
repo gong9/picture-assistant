@@ -56,7 +56,7 @@ function Page() {
     );
 
     window.electron.ipcRenderer.on(
-      'ipc-download',
+      'ipc-detach',
       (fileMessage: HandleMessage) => {
         if (fileMessage.status === 'success') {
           setDownloadStatus(true);
@@ -106,6 +106,14 @@ function Page() {
     }
   };
 
+  const detach = () => {
+    if (needHandleFileRef.current.length) {
+      needHandleFileRef.current.forEach((file) => {
+        window.electron.ipcRenderer.sendMessage('ipc-detach', file.path);
+      });
+    }
+  };
+
   const tabsData = [
     {
       icon: () => AppleOutlined,
@@ -138,7 +146,7 @@ function Page() {
     },
     {
       icon: () => AndroidOutlined,
-      label: 'png=>apng',
+      label: 'apng=>png',
       children: (
         <div className="app-context">
           <div className="app-upload">
@@ -155,10 +163,10 @@ function Page() {
             <div className="btns">
               <Button
                 type="primary"
-                onClick={uploadToCompress}
+                onClick={detach}
                 disabled={!needHandleFileRef.current.length || compressStatus}
               >
-                开始合成
+                开始拆解
               </Button>
             </div>
           </div>

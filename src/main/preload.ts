@@ -2,7 +2,11 @@
 /* eslint no-unused-vars: off */
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 
-export type Channels = 'ipc-upload' | 'ipc-download' | 'ipc-example';
+export type Channels =
+  | 'ipc-upload'
+  | 'ipc-download'
+  | 'ipc-example'
+  | 'ipc-detach';
 
 const electronHandler = {
   ipcRenderer: {
