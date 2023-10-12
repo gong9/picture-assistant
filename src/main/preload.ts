@@ -6,7 +6,8 @@ export type Channels =
   | 'ipc-upload'
   | 'ipc-download'
   | 'ipc-example'
-  | 'ipc-detach';
+  | 'ipc-detach'
+  | 'ipc-synthesis';
 
 const electronHandler = {
   ipcRenderer: {

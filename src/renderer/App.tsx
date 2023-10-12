@@ -117,6 +117,10 @@ function Page() {
     }
   };
 
+  const synthesis = () => {
+    window.electron.ipcRenderer.sendMessage('ipc-synthesis');
+  };
+
   const tabsData = [
     {
       icon: () => AppleOutlined,
@@ -175,6 +179,27 @@ function Page() {
                   disabled={!needHandleFileRef.current.length || compressStatus}
                 >
                   开始拆解
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      ),
+    },
+    {
+      icon: () => AndroidOutlined,
+      label: 'png=>apng',
+      children: (
+        <div className="app-context">
+          <div className="app-upload">
+            {imageArray.length > 0 ? (
+              <div className="show-view">
+                拆解完成，共有{imageArray.length}帧，请去目标文件夹查看
+              </div>
+            ) : (
+              <div className="btns">
+                <Button type="primary" onClick={synthesis}>
+                  资源上传
                 </Button>
               </div>
             )}

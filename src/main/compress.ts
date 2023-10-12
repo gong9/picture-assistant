@@ -6,7 +6,7 @@ import to from 'await-to-js';
 import imagemin from 'imagemin';
 
 // eslint-disable-next-line import/no-cycle
-import detach from './handleApng';
+import detach, { synthesis } from './handleApng';
 
 const tempDir = 'temp';
 let rootPath = '';
@@ -165,6 +165,39 @@ const initCompressProcess = (browserWindow: BrowserWindow) => {
             error: err.message,
           });
         }
+      });
+  });
+
+  ipcMain.on('ipc-synthesis', async (event, filePath: string) => {
+    dialog
+      .showOpenDialog(browserWindow, {
+        title: '选择要上传的文件夹',
+        properties: ['openDirectory'],
+      })
+      .then(async (data) => {
+        const placePath = data.filePaths[0];
+
+        dialog
+          .showOpenDialog(browserWindow, {
+            title: '选择要放置的文件夹',
+            properties: ['openDirectory'],
+          })
+          .then(async (downloadPathArr) => {
+            const downloadPath = downloadPathArr.filePaths[0];
+            const [err, res] = await to(synthesis(placePath, downloadPath));
+            if (!err) {
+              event.reply('ipc-synthesis', {
+                status: 'success',
+                file: res,
+              });
+            } else {
+              event.reply('ipc-synthesis', {
+                status: 'error',
+                message: '合成失败',
+                error: err.message,
+              });
+            }
+          });
       });
   });
 };

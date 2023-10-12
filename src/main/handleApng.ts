@@ -3,6 +3,9 @@ import fs from 'fs-extra';
 import { v4 as uuidv4 } from 'uuid';
 import path from 'path';
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-expect-error
+import Assembler from 'apng-assembler';
 // eslint-disable-next-line import/no-cycle
 import { isExists, remove } from './compress';
 
@@ -41,10 +44,29 @@ const detachApng = async (inputPath: string, placePath: string) => {
     await blobToImage(anim.frames[i].imageData, outputFilePath);
 
     outputFilePaths.push(outputFilePath);
-    console.log(`Frame ${i} saved as ${outputFilePath}`);
   }
 
   return outputFilePaths;
+};
+
+export const synthesis = (inputPath: string, placePath: string) => {
+  return new Promise((resolve, reject) => {
+    Assembler.assemble(
+      `${inputPath}/*.png`,
+      path.resolve(placePath, 'out.png'),
+      {
+        frameDelay: 50,
+        compression: Assembler.COMPRESS_7ZIP,
+      },
+    ).then(
+      () => {
+        resolve(placePath);
+      },
+      (error: Error) => {
+        reject(error);
+      },
+    );
+  });
 };
 
 export default detachApng;

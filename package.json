@@ -78,6 +78,7 @@
   "dependencies": {
     "@ant-design/icons": "^5.2.6",
     "antd": "^5.9.4",
+    "apng-assembler": "^1.0.2",
     "apng-js": "^1.1.1",
     "await-to-js": "^3.0.0",
     "electron-debug": "^3.2.0",
