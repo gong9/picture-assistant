@@ -1,5 +1,10 @@
 import parseApng from 'apng-js';
 import fs from 'fs-extra';
+import { v4 as uuidv4 } from 'uuid';
+import path from 'path';
+
+// eslint-disable-next-line import/no-cycle
+import { isExists, remove } from './compress';
 
 /**
  * blob to image
@@ -24,13 +29,14 @@ const detachApng = async (inputPath: string, placePath: string) => {
   const data = fs.readFileSync(inputPath);
   const anim: any = parseApng(data);
   const outputFilePaths: string[] = [];
-  //   const outputPath = path.resolve(rootPath, detachDir);
+  const uuid = uuidv4();
+  const outputPath = path.resolve(placePath, uuid);
 
-  //   if (!(await isExists(outputPath))) fs.ensureDirSync(outputPath);
-  //   else await remove(outputPath);
+  if (!(await isExists(outputPath))) fs.ensureDirSync(outputPath);
+  else await remove(outputPath);
 
   for (let i = 0; i < anim.frames.length; i++) {
-    const outputFilePath = `${placePath}/frame_${i}.png`;
+    const outputFilePath = `${outputPath}/frame_${i}.png`;
     // eslint-disable-next-line no-await-in-loop
     await blobToImage(anim.frames[i].imageData, outputFilePath);
 
